@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# Database
+promptnano.db
+
+# Uploads (keep directory but ignore content)
+uploads/*
+!uploads/.gitkeep
+
+# Environment variables
+.env
+
+# System files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 靈感資料庫 - PromptNano</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <link rel="icon" type="image/png" href="assets/favicon-96x96.png">
+
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-top">
+        <h1>✨ AI 提示詞圖庫</h1>
+
+        <div class="search-bar">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="搜尋提示詞(Prompt) 或 #Tag..."
+          />
+          <button class="btn-clear" onclick="clearFilter()" title="清除搜尋">
+            ✕
+          </button>
+        </div>
+
+        <div class="header-buttons">
+          <button class="theme-toggle" onclick="toggleTheme()">
+            🌓 切換模式
+          </button>
+          <button
+            class="theme-toggle"
+            onclick="openSettings()"
+            title="設定"
+          >
+            ⚙️
+          </button>
+          <button
+            class="btn-upload"
+            onclick="openTutorial()"
+            style="background: var(--text-light)"
+          >
+            📘 秘籍
+          </button>
+          <button class="btn-upload" onclick="toggleUpload()">
+            ＋ 新增靈感
+          </button>
+        </div>
+      </div>
+
+      <div class="subtitle">
+        透過看圖找靈感。自訂的分類檢索。AI 創意提示詞庫隨取隨用。
+      </div>
+    </div>
+
+    <div class="gallery" id="gallery">
+      <p style="text-align: center; width: 100%; color: #888">
+        正在載入靈感庫...
+      </p>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-left">
+          <img id="modalImg" src="" />
+        </div>
+        <div class="modal-right">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+            "
+          >
+            <h2 id="modalTitle" style="margin: 0; flex-grow: 1">標題</h2>
+            <button class="btn-modal-delete" id="modalDeleteBtn">🗑️</button>
+          </div>
+
+          <div class="prompt-label">AI 雲標籤 (Cloud Tags)</div>
+          <div
+            class="card-tags"
+            id="modalTags"
+            style="margin-bottom: 15px"
+          ></div>
+
+          <div class="modal-header-row">
+            <div class="prompt-label">提示詞 (Prompt)</div>
+            <div style="display: flex; gap: 10px">
+              <button class="btn-update" id="modalUpdateBtn" title="更新內容">
+                ✏️
+              </button>
+              <button
+                class="btn-download"
+                onclick="downloadImage()"
+                title="下載預覽圖"
+              >
+                ⬇️
+              </button>
+              <button class="btn-copy" onclick="copyDesc()" title="複製提示詞">
+                📋
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-desc-box">
+            <div id="modalDesc"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div
+      id="uploadOverlay"
+      class="modal"
+      style="z-index: 999"
+      onclick="if(event.target==this) toggleUpload()"
+    >
+      <form id="uploadForm" onsubmit="handleUpload(event)">
+        <div id="uploadSection" style="display: block">
+          <h3 style="text-align: center; color: var(--primary)">
+            新增 AI 靈感
+          </h3>
+          <div class="form-group">
+            <label>參考圖片</label>
+            <div class="drop-zone" id="dropZone">
+              <div class="drop-zone-icon">🖼️</div>
+              <div class="drop-zone-text">
+                <strong>點擊選擇</strong> 或 <strong>拖放圖片</strong> 到這裡
+              </div>
+              <input type="file" name="imageFile" id="fileInput" accept="image/*" required />
+              <img class="drop-zone-preview" id="previewImg" alt="Preview" />
+              <div class="drop-zone-filename" id="fileName"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>標題</label>
+            <input
+              type="text"
+              name="title"
+              required
+              placeholder="例如: 賽博龐克少女"
+            />
+          </div>
+          <div class="form-group">
+            <label>雲標籤 (Tag)</label>
+            <input
+              type="text"
+              name="tags"
+              placeholder="例如: #8k #masterpiece #light effect"
+            />
+          </div>
+          <div class="form-group">
+            <label>完整提示詞 (Prompt)</label>
+            <textarea
+              name="desc"
+              rows="8"
+              placeholder="輸入完整的 AI 生成指令..."
+            ></textarea>
+          </div>
+          <button type="submit" class="btn-upload" style="width: 100%">
+            確認建檔
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader" id="loader">處理中...</div>
+
+    <!-- System Modal -->
+    <div id="systemModal" class="modal" style="z-index: 2000">
+      <div
+        class="modal-content"
+        style="
+          max-width: 350px;
+          flex-direction: column;
+          height: auto;
+          padding: 25px;
+        "
+      >
+        <h3
+          id="sysTitle"
+          style="text-align: center; margin-bottom: 15px; color: var(--primary)"
+        >
+          提示
+        </h3>
+        <p
+          id="sysMsg"
+          style="
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            color: var(--text-main);
+          "
+        ></p>
+        <div style="display: flex; gap: 15px; justify-content: center">
+          <button
+            id="sysBtnCancel"
+            class="btn-cancel"
+            onclick="closeSystemModal()"
+          >
+            取消
+          </button>
+          <button id="sysBtnOk" class="btn-upload" style="min-width: 80px">
+            確定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorialModal" class="modal">
+      <div
+        class="modal-content"
+        style="max-width: 800px; flex-direction: column; max-height: 85vh"
+      >
+        <div
+          style="
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--input-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <h2 style="margin: 0; font-size: 1.5rem; color: var(--primary)">
+            📘 詠唱魔法秘籍
+          </h2>
+          <span class="close" onclick="closeTutorial()" style="position: static"
+            >&times;</span
+          >
+        </div>
+
+        <div class="modal-body" style="padding: 30px; overflow-y: auto">
+          <details open>
+            <summary>🤖 懶人法：逆向工程</summary>
+            <div class="details-content">
+              <p>不知道怎麼下高品質的提示詞？</p>
+              <ol>
+                <li>先去收集別人的作品。</li>
+                <li>上傳給 AI 後，請 AI 分析並生成提示詞。</li>
+                <li>有了基礎再進行調整，效率更加倍！</li>
+              </ol>
+            </div>
+          </details>
+
+          <details>
+            <summary>✏️ 風格與手繪質感</summary>
+            <div class="details-content">
+              <p>讓畫面更有溫度的關鍵字：</p>
+              <div class="keyword-group">
+                <span class="label">風格：</span>
+                <span class="kw" onclick="copyKw(this)">Minimalist</span>
+                <span class="kw" onclick="copyKw(this)">Hand-drawn</span>
+                <span class="kw" onclick="copyKw(this)">Rough sketch</span>
+              </div>
+              <div class="keyword-group">
+                <span class="label">筆觸：</span>
+                <span class="kw" onclick="copyKw(this)">Ink texture</span>
+                <span class="kw" onclick="copyKw(this)">Shaky lines</span>
+                <span class="kw" onclick="copyKw(this)">Felt tip pen</span>
+              </div>
+              <p class="tip">💡 點擊關鍵字可直接複製！</p>
+            </div>
+          </details>
+
+          <details>
+            <summary>✨ 氛圍大補帖</summary>
+            <div class="details-content">
+              <h4>1. 光影 (Lighting)</h4>
+              <div class="keyword-group">
+                <span class="kw" onclick="copyKw(this)">Golden Hour</span>
+                <span class="kw" onclick="copyKw(this)">Cinematic Lighting</span>
+                <span class="kw" onclick="copyKw(this)">Volumetric Lighting</span>
+                <span class="kw" onclick="copyKw(this)">Soft Lighting</span>
+              </div>
+              <h4>2. 情緒 (Mood)</h4>
+              <div class="keyword-group">
+                <span class="kw" onclick="copyKw(this)">Moody</span>
+                <span class="kw" onclick="copyKw(this)">Ethereal</span>
+                <span class="kw" onclick="copyKw(this)">Vintage</span>
+                <span class="kw" onclick="copyKw(this)">Melancholy</span>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div
+      class="modal"
+      id="editModal"
+      style="z-index: 2001"
+      onclick="if(event.target==this) closeEditModal()"
+    >
+      <form id="editForm">
+        <input type="hidden" id="edit-id" />
+        <div
+          id="editSection"
+          style="
+            display: block;
+            background: var(--modal-bg);
+            padding: 30px;
+            border-radius: 25px;
+            max-width: 800px;
+            width: 90%;
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--input-border);
+          "
+        >
+          <h3 style="text-align: center; color: var(--primary)">
+            編輯 AI 靈感
+          </h3>
+          <div class="form-group">
+            <label>標題</label>
+            <input
+              type="text"
+              id="edit-title"
+              required
+              placeholder="例如: 賽博龐克少女"
+            />
+          </div>
+          <div class="form-group">
+            <label>雲標籤 (Tag)</label>
+            <input
+              type="text"
+              id="edit-tags"
+              placeholder="例如: #8k #masterpiece"
+            />
+          </div>
+          <div class="form-group">
+            <label>完整提示詞 (Prompt)</label>
+            <textarea
+              id="edit-desc"
+              rows="8"
+              placeholder="輸入完整的 AI 生成指令..."
+            ></textarea>
+          </div>
+          <div style="display: flex; gap: 10px">
+            <button
+              type="button"
+              class="btn-cancel"
+              onclick="closeEditModal()"
+              style="flex: 1"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              class="btn-upload"
+              onclick="saveEdit()"
+              style="flex: 1"
+            >
+              儲存修改
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Settings Modal -->
+    <div
+      class="modal"
+      id="settingsModal"
+      style="z-index: 1500"
+      onclick="if(event.target==this) closeSettings()"
+    >
+      <div
+        style="
+          display: block;
+          background: var(--modal-bg);
+          padding: 30px;
+          border-radius: 25px;
+          max-width: 500px;
+          width: 90%;
+          margin: auto;
+          border: 1px solid var(--input-border);
+        "
+      >
+        <h3 style="text-align: center; color: var(--primary); margin-bottom: 25px">
+          ⚙️ 設定
+        </h3>
+        
+        <div class="form-group">
+          <label style="font-size: 1rem; margin-bottom: 15px; display: block">
+            📤 資料匯出
+          </label>
+          <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 15px">
+            將所有靈感資料匯出為 CSV 格式，可用 Excel 或其他試算表軟體開啟。
+          </p>
+          <button
+            class="btn-upload"
+            onclick="exportCSV()"
+            style="width: 100%; background: var(--text-light)"
+          >
+            📥 匯出 CSV 檔案
+          </button>
+        </div>
+
+        <hr style="border: none; border-top: 1px dashed var(--input-border); margin: 25px 0" />
+
+        <div class="form-group">
+          <label style="font-size: 1rem; margin-bottom: 10px; display: block">
+            📊 資料統計
+          </label>
+          <p id="statsInfo" style="color: var(--text-light); font-size: 0.9rem">
+            載入中...
+          </p>
+        </div>
+
+        <button
+          class="btn-cancel"
+          onclick="closeSettings()"
+          style="width: 100%; margin-top: 10px"
+        >
+          關閉
+        </button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="version-tag">System Ver 1.3.0 (Node.js)</span>
+      <span class="copyright">PromptNano AI 提示詞圖庫</span>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
