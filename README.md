@@ -2,7 +2,7 @@
 
 PromptNano 是一個輕量級、溫暖可愛風格的 AI 提示詞（Prompt）管理工具。透過視覺化的圖庫介面，讓使用者能輕鬆收藏、檢索與管理 AI 生成圖片的提示詞。
 
-本專案使用 **Node.js + SQLite** 架構，支援本地運行與更流暢的操作體驗。
+本專案使用 **Node.js + SQLite** 架構，支援本地運行與更流暢的操作體驗。如果想線上使用，可以使用 [Google Apps Script 架構的 PromptNano](https://github.com/max32002/PromptNano)。
 
 ![PromptNano Banner](https://github.com/max32002/PromptNano-Node/raw/main/preview/banner.jpg) 
 
