@@ -7,6 +7,10 @@ PromptNano 是一個輕量級、溫暖可愛風格的 AI 提示詞（Prompt）�
 ![PromptNano Banner](https://github.com/max32002/PromptNano-Node/raw/main/preview/banner.jpg) 
 
 
+新增 AI 靈感的上傳畫面
+![PromptNano upload](https://github.com/max32002/PromptNano-Node/raw/main/preview/upload.jpg) 
+
+
 ## 🚀 特色功能
 
 - **溫暖可愛 UI**：精心設計的草莓牛奶（淺色）與黑巧克力（深色）雙主題介面。
